@@ -84,4 +84,5 @@ builder.Services.AddSwaggerGen(c =>
 - Ensure that the `JwtService` is registered in the `Program.cs` file.
 - Ensure that the `AdminCredentials` in the `appsettings.json` file is correctly configured.
 - Ensure that the `Login` method in the `AuthController` class is correctly implemented.
-- Ensure the defined key in `appsettings.json` is at least 32 characters long ie 256 bits.
+- Ensure the defined key in `appsettings.json` is at least 32 characters long i.e. 256 bits.
+- In production environment, you may want to add the `appsettings.json` file to the `.gitignore` file to avoid exposing sensitive information.
