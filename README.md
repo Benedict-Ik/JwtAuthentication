@@ -79,7 +79,7 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 ```
-
+- Once the bearer token has been generated, click on the `Authorize` button in the Swagger UI and enter the token in the format `Bearer {token}`.
 ## Common errors to avoid
 - Ensure that the `JwtService` is registered in the `Program.cs` file.
 - Ensure that the `AdminCredentials` in the `appsettings.json` file is correctly configured.
