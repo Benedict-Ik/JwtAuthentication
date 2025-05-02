@@ -34,7 +34,7 @@ namespace JwtAuthentication.Services
                 issuer: issuer,
                 audience: audience,
                 claims: claim,
-                expires: DateTime.Now.AddMinutes(30),
+                expires: DateTime.Now.AddMinutes(20),
                 signingCredentials: cred
             );
             return new JwtSecurityTokenHandler().WriteToken(token);
