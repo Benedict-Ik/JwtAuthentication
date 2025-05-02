@@ -8,15 +8,6 @@
 ## Registering Packages in Program.cs
 - We registered the JWT authentication service (dependency) in the `Program.cs` file as shown below:
 ```csharp
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-```
-
-- Optionally:
-```csharp
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer("Bearer", options =>
     {
