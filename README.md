@@ -1,40 +1,87 @@
 # JwtAuthentication 
-In this branch, we created a JwtService class that encapsulates the logic for generating JWTs.
+In this branch, we created an 'AuthController` class that handles user authentication using JWT (JSON Web Tokens).
 
-## Creating the JwtService
-- We first created a `JwtService` embedded within an already created `Services` folder.
-- Then created the `GenerateToken` method that generates a JWT token using the `JwtSecurityTokenHandler` class.
-- We modified the `appsettings.json` file to include the JWT settings such as `Issuer`, `Audience`, and `Key`.
-    - The `issuer` and `audience` properties are set to the same URL which can be gotten from the `launchSettings.json` file found in the `properties` folder.
-    - Note that we are concerned with the URL of the `applicationURL` found in the `https` scheme.
-```json
+## Creating `AuthController` class
+- Created a `Login` endpoint in a new class `AuthController` in the `Controllers` directory which will be responsible for handling user authentication.
+- The `Login` method will take in a `UserLogin` object as a parameter in the `Login` method.
+- We then went ahead to create the `UserLogin` class in a newly created `Models` directory which will be used to validate the user credentials.
+- In `appsettings.json` file, we added the below to store `AdminCredentials`:
+```Json
 {
-  "Jwt": {
-    "Key": "sUpErsEcrEtkEy321!@#$789",
-    "Issuer": "https://localhost:7181",
-    "Audience": "https://localhost:7181"
+  "AdminCredentials": {
+	"Username": "admin",
+	"Password": "!!Admin123"
   }
 }
 ```
+- We then went ahead to inject and use this data in the `Login()` method of the `AuthController` class to generate a token for a user trying to log in.
+- After doing the above, we created another endpoint `GetSecureData` which will be used to validate the token.
+- The `GetSecureData` is a dummy endpoint for other endpoints in our controller class. It will be used to test the authentication of the user. It will return a string "This is a secure data by an authenticated user" if the token is valid and the user is authenticated.
 
-- We modified the `JwtService` class to call the defined Jwt Settings for the `Issuer`, `Audience`, and `Key` properties from the `appsettings.json` file.
+## Registering JwtService in Program.cs
+To enable us to use JWT authentication, we registered the `JwtService` in the `Program.cs` file. The `JwtService` is responsible for generating and validating JWT tokens.
 
-## Modifying Program.cs
-- Ensured the `Program.cs` class has the below code:
 ```csharp
-builder.Services.AddAuthentication("Bearer")
-    .AddJwtBearer("Bearer", options =>
-    {
-        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            // The below lines are subjective and are based on the dev's configuration
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Issuer"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
-        };
-    });
+builder.Services.AddScoped<JwtService>();
 ```
+
+## Testing the endpoints in Postman
+1. Testing the `login` endpoint 
+- Open Postman and create a new request.
+- Set the request type to POST and enter the URL for the `Login` endpoint (e.g., `https://localhost:{port}/api/Auth/Login`).
+- Follow the below screenshot:
+![File](file.png)
+- Enter the appropriate username and password.
+- Incorrect details will throw a `401 Unauthorized` error as seen below:
+![File1](file1.png)
+- Correct details will give a `200 OK` response as seen below:
+![File2](file2.png)
+
+2. Testing the `GetSecureData` endpoint
+- Create a new request.
+- Set the request type to Get and enter the URL for the `Login` endpoint (e.g., `https://localhost:{port}/api/Auth/GetSecureData`).
+- Follow the below screenshot:
+![File3](file3.png)
+- An incorrect configuration and/or details will give an error.
+
+## Modifying `Program.cs` to enable authorization in Swagger UI
+- Modified the `.AddSwaggerGen` method in the Program.cs file.
+```csharp
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new() { Title = "JwtAuthentication Api", Version = "v1" });
+
+    // Enable JWT auth in Swagger
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Enter 'Bearer' [space] and then your valid token.\n\nExample: Bearer eyJhbGciOiJIUzI1NiIs..."
+    });
+
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
+
+```
+
+## Common errors to avoid
+- Ensure that the `JwtService` is registered in the `Program.cs` file.
+- Ensure that the `AdminCredentials` in the `appsettings.json` file is correctly configured.
+- Ensure that the `Login` method in the `AuthController` class is correctly implemented.
+- Ensure the defined key in `appsettings.json` is at least 32 characters long ie 256 bits.
